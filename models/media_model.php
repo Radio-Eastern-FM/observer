@@ -1129,6 +1129,17 @@ class MediaModel extends OBFModel
 
   }
 
+  private function ingest_pipeline($filename)
+  {
+    $file_info = pathinfo($filename);
+    $new_file = $file_info['dirname'].$file_info['filename']."_.".$file_info['extension'];
+    error_log(print_r("\n\n".'ffmpeg -i '.$filename.' -filter:a loudnorm '.$new_file."\n\n", TRUE));
+    // Normalise Audio into a new file
+    shell_exec('ffmpeg -i '.$filename.' -filter:a loudnorm '.$new_file);
+    // Replace old file with new
+    shell_exec('mv '.$new_file.' '.$filename);
+  }
+
   /**
    * Insert or update a media item.
    *
@@ -1323,6 +1334,8 @@ class MediaModel extends OBFModel
       else $file_dest = OB_MEDIA.$media_location.$filename;
       rename($file_src,$file_dest);
 
+      // Run injest pipeline step
+      $this->ingest_pipeline($file_dest);
 
       // remove file upload row from uploads table.
       $this->db->where('id',$file_id);

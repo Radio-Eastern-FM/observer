@@ -129,9 +129,6 @@ class MediaPreview extends OBFController
     if($type=='audio') 
     {
 
-      // Get file size
-      $filesize = filesize($media_file);
-      
       // download mode
       if($download)
       {
@@ -149,6 +146,9 @@ class MediaPreview extends OBFController
 
       $cache_file = $cache_dir.'/'.$media['id'].'_audio.'.$audio_format;
 
+      // Get file size
+      $filesize = filesize($cache_file);
+      
       if(!file_exists($cache_file))
       {
         $strtr_array = array('{infile}'=>$media_file, '{outfile}'=>$cache_file);
@@ -218,21 +218,20 @@ class MediaPreview extends OBFController
         header('HTTP/1.1 206 Partial Content');
         header("Content-Range: bytes $start-$end/$filesize");
         if (!$fp = fopen($cache_file, 'rb')) {
-            header("HTTP/1.1 500 Internal Server Error");
-            exit;
+          header("HTTP/1.1 500 Internal Server Error");
+          exit;
         }
         if ($start) fseek($fp,$start);
         while($length){
-            set_time_limit(0);
-            $read = ($length > 8192) ? 8192 : $length;
-            $length -= $read;
-            print(fread($fp,$read));
+          set_time_limit(0);
+          $read = ($length > 8192) ? 8192 : $length;
+          $length -= $read;
+          print(fread($fp,$read));
         }
         fclose($fp);
       }
       //just send the whole file
       else {
-        header('Content-Length: '.filesize($cache_file));
         $fp = fopen($cache_file,'rb');
         fpassthru($fp);
       }

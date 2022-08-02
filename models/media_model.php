@@ -199,6 +199,7 @@ class MediaModel extends OBFModel
     $this->db->what('media_languages.name','language_name');
 
     $this->db->what('media.is_approved','is_approved');
+    $this->db->what('media.approved_on','approved_on');
 
     $this->db->what('media.genre_id','genre_id');
     $this->db->what('media_genres.name','genre_name');
@@ -1279,6 +1280,7 @@ class MediaModel extends OBFModel
       }
       $item['created']=time();
       $item['updated']=time();
+      if($item['is_approved']) $item['approved_on']=time();
 
       $id = $this->db->insert('media',$item);
     }
@@ -1316,7 +1318,7 @@ class MediaModel extends OBFModel
 
       // determine our (random) file location
 
-    if($original_media) $file_location = $original_media['file_location'];
+      if($original_media) $file_location = $original_media['file_location'];
       else $file_location = $this->rand_file_location();
       $media_location = '/'.$file_location[0].'/'.$file_location[1].'/';
 
@@ -1363,6 +1365,20 @@ class MediaModel extends OBFModel
       else $file_dest = OB_MEDIA_UPLOADS.$media_location.$filename;
 
       rename($file_src,$file_dest);
+      
+      // If the approval status is changing
+      if($original_media['is_approved'] != $item['is_approved'])
+      {
+        // If we are transitioning to approved:
+        if($original_media['is_approved']==0){
+          $item['approved_on']=time();
+        }
+        else{
+          $item['approved_on']=null;
+        }
+        $this->db->where('id',$id);
+        $this->db->update('media',array('approved_on'=>$item['approved_on']));
+      }
 
       // update db with new filename
       $this->db->where('id',$id);

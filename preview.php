@@ -85,7 +85,7 @@ class MediaPreview extends OBFController
     if(!preg_match('/^[A-Z0-9]{2}$/',$media['file_location'])) die();
 
     // check permissions
-    $is_media_owner = $media['owner_id']==$user->param('id');    
+    $is_media_owner = $media['owner_id']==$user->param('id');
     
     // preview/download both require manage_media if private media and not owner
     if($media['status']=='private' && !$is_media_owner) $user->require_permission('manage_media');

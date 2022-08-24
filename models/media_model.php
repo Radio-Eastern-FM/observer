@@ -200,6 +200,7 @@ class MediaModel extends OBFModel
 
     $this->db->what('media.is_approved','is_approved');
     $this->db->what('media.approved_on','approved_on');
+    $this->db->what('media.approver','approver');
 
     $this->db->what('media.genre_id','genre_id');
     $this->db->what('media_genres.name','genre_name');
@@ -280,6 +281,19 @@ class MediaModel extends OBFModel
     if($media)
     {
       $media['thumbnail'] = $this->models->media('media_thumbnail_exists',['media'=>$media]);
+      
+      // If approved, get approver
+      if($media['is_approved'])
+      {
+        $this->db->where('id', $media['approver']);
+        $approver = $this->db->get('users');
+        
+        if($approver[0])
+        {
+          $media['approver'] = $approver[0]['name'] . " (" . $approver[0]['email'] . ")";
+        }
+        // $media['approver'] = "Unknown";
+      }
     }
     
     return $media;
@@ -1280,7 +1294,10 @@ class MediaModel extends OBFModel
       }
       $item['created']=time();
       $item['updated']=time();
-      if($item['is_approved']) $item['approved_on']=time();
+      if($item['is_approved']) {
+        $item['approved_on']=time();
+        $item['approver']=$this->user->param('id');
+      }
 
       $id = $this->db->insert('media',$item);
     }
@@ -1372,12 +1389,16 @@ class MediaModel extends OBFModel
         // If we are transitioning to approved:
         if($original_media['is_approved']==0){
           $item['approved_on']=time();
+          $item['approver']=$this->user->param('id');
         }
         else{
           $item['approved_on']=null;
+          $item['approver']=null;
         }
         $this->db->where('id',$id);
-        $this->db->update('media',array('approved_on'=>$item['approved_on']));
+        $this->db->update('media',array(
+          'approved_on' => $item['approved_on'],
+          'approver' => $item['approver']));
       }
 
       // update db with new filename

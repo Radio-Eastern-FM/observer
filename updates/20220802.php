@@ -12,6 +12,7 @@ class OBUpdate20220802 extends OBUpdate {
   public function run ()
   {
     $this->db->query('ALTER TABLE media ADD approved_on INT UNSIGNED NULL AFTER is_approved;');
+    $this->db->query('ALTER TABLE media ADD approver INT NULL AFTER approved_on;');
     return true;
   }
 }

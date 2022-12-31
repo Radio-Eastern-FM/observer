@@ -115,6 +115,8 @@ OB.Media.detailsPage = function(id)
 
     $('#media_details_created').text(format_timestamp(item.created));
     $('#media_details_updated').text(format_timestamp(item.updated));
+    $('#media_details_approved_on').text(format_timestamp(item.approved_on));
+    $('#media_details_approver').text(item.approver);
 
     $('#media_details_uploader').text(item.owner_name);
 
